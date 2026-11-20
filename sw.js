@@ -1,5 +1,5 @@
 // Cachea la app para que funcione sin conexión. Sube VERSION al cambiar archivos.
-var VERSION = 'miplan-v1';
+var VERSION = 'miplan-v2';
 var FILES = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));

@@ -84,6 +84,14 @@ var MENU=[
  {d:'Arepa de chía y linaza con omelette de 3 huevos y verduras',dk:'~430 kcal · 24 g proteína',a:'Pollo con ensalada y quinoa',c:'Pollo con brócoli'},
  {d:'Batido de proteína con arándanos, 2 cdas de avena y banana',dk:'~330 kcal · 28 g proteína',a:'Pollo con ensalada y arroz',c:'Pescado con verduras'}
 ];
+/* Rutina base sacada del informe de openGym (24 oct - 20 nov 2026). Se usa solo si el día no se ha editado. */
+var WORKOUT={
+ 0:'Día B · Piernas y hombros\n• Sentadilla goblet con mancuerna: 3×11-12 · 12 kg\n• Press Arnold con mancuernas: 4×8 · 7,5 kg\n• Zancada hacia atrás con mancuernas: 3×8-10 · 8 kg\n• Flexiones inclinadas (en banco): 4×10\n• Press francés de pie con mancuerna: 3×8 · 5 kg\n• Plancha sobre manos: 3×30 s\n• Elevación de gemelos en el suelo con barra: 3×10 · 10 kg (8 kg cada pierna)',
+ 1:'Día A · Glúteos y espalda\n• Elevación de cadera acostado con barra: 4×10 · 14 kg\n• Remo Kroc con mancuerna: 4×8 por lado · 10 kg\n• Peso muerto rumano con barra: 4×10 · 14 kg\n• Elevación lateral parcial con mancuernas: 4×12 · 3 kg\n• Curl de bíceps con mancuernas: 3×8 · 7,5 kg\n• Extensión de tríceps declinada con mancuernas: 3×8 · 5 kg\n• Bicho muerto: 4×10',
+ 3:'Día C · Full body y calistenia\n• Sentadilla sumo con kettlebell: 3×10 · 15 kg\n• Remo invertido en suspensión: 3×11\n• Puente de glúteos a una pierna (brazos en el pecho): 3×6 por pierna\n• Press de pecho en el suelo con mancuernas: 4×8-12 · 10 kg\n• Sentadilla lateral con mancuernas: 3×10 · 12 kg\n• Curl martillo con mancuernas: 3×8-10 · 7,5 kg\n• Plancha lateral (principiante): 6×30 s\n• Saltar la cuerda: 4×30 s',
+ 4:'Correr'
+};
+function workoutFor(i){var w=S.workout[i];return w===undefined||w===null?(WORKOUT[i]||''):w}
 var SNACK='Fruta con un puñado de frutos secos, o queso fresco con zanahoria (~200 kcal)';
 var CHECKS=[['d','Desayuno del plan'],['a','Almuerzo del plan'],['m','Merienda'],['c','Cena del plan'],['p','Proteína: 110 g o más'],['w','Agua: 2 litros o más'],['s','Pasos: 7.000 o más'],['t','Entreno hecho'],['z','Dormir 7-8 horas']];
 
@@ -174,7 +182,7 @@ function viewHoy(){
   h+='<h2>Checklist</h2><div class="card"><div class="row"><b>'+done+' de '+CHECKS.length+'</b><span class="sub">'+Math.round(done/CHECKS.length*100)+'%</span></div><div class="bar"><i style="width:'+(done/CHECKS.length*100)+'%"></i></div>';
   CHECKS.forEach(function(x){h+='<button class="chk'+(c[x[0]]?' on':'')+'" data-chk="'+x[0]+'"><span class="box">'+(c[x[0]]?'✓':'')+'</span><span class="t">'+x[1]+'</span></button>'});
   h+='</div>';
-  var w=S.workout[wIdx(sel)];
+  var w=workoutFor(wIdx(sel));
   if(w&&String(w).trim())h+='<h2>Entreno de hoy</h2><div class="card" style="white-space:pre-wrap">'+esc(w)+'</div>';
   return h;
 }
@@ -261,9 +269,9 @@ function viewProg(){
 function viewEnt(){
   var tdy=wIdx(midnight(new Date()));
   var h='<div class="hdr"><div><h1>Entrenamiento</h1><p class="sub">Escribe aquí tu rutina de cada día</p></div></div>';
-  h+='<div class="banner info">Pega la rutina de tu proyecto en cada día. Se guarda sola. Deja vacío los días de descanso.</div>';
+  h+='<div class="banner info">Rutina cargada de tu informe de openGym, con los últimos pesos que usaste. Cámbiala cuando quieras: se guarda sola. Deja vacío los días de descanso.</div>';
   DAYS.forEach(function(n,i){
-    h+='<div class="card"><div class="row" style="margin-bottom:6px"><b>'+n+'</b>'+(i===tdy?'<span class="tag" style="background:var(--accent-soft);color:var(--accent)">hoy</span>':'')+'</div><textarea data-w="'+i+'" placeholder="Descanso o escribe tu rutina">'+esc(S.workout[i]||'')+'</textarea></div>';
+    h+='<div class="card"><div class="row" style="margin-bottom:6px"><b>'+n+'</b>'+(i===tdy?'<span class="tag" style="background:var(--accent-soft);color:var(--accent)">hoy</span>':'')+'</div><textarea data-w="'+i+'" placeholder="Descanso o escribe tu rutina">'+esc(workoutFor(i))+'</textarea></div>';
   });
   return h;
 }
