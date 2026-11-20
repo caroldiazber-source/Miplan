@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi plan: nutrición y entreno</title>
+<meta name="theme-color" content="#c4572e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mi plan">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#faf6f1;--card:#fff;--ink:#2b2622;--muted:#7a6f66;--line:#ece4db;--accent:#c4572e;--accent-soft:#f8e4da;--green:#3f7d5c;--green-soft:#dcefe4;--gold:#a8741a;--gold-soft:#f7ebd0}
+@media (prefers-color-scheme:dark){:root{--bg:#1a1714;--card:#25211d;--ink:#f2ece6;--muted:#a3978c;--line:#363029;--accent:#e57a50;--accent-soft:#3a2a22;--green:#6cc093;--green-soft:#22352b;--gold:#e0b05a;--gold-soft:#3a2f1a}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.4}
+#app{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 96px)}
+h1{font-size:22px;margin:0;line-height:1.2;text-transform:capitalize}
+h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px;font-weight:600}
+p{margin:0}
+.sub{color:var(--muted);font-size:14px;margin-top:2px}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.hdr>div{flex:1;text-align:center}
+.nav{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.banner{border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:14px}
+.banner.free{background:var(--gold-soft);color:var(--gold)}
+.banner.info{background:var(--accent-soft);color:var(--accent)}
+.meal{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.meal:last-child{border-bottom:0;padding-bottom:0}.meal:first-child{padding-top:0}
+.meal b{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.meal span.k{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.chk{display:flex;align-items:center;gap:12px;width:100%;padding:12px 4px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.chk:last-child{border-bottom:0}
+.chk .box{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:14px;color:#fff}
+.chk.on .box{background:var(--green);border-color:var(--green)}
+.chk.on span.t{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0 2px}
+.bar i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .3s}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.stat small{display:block;color:var(--muted);font-size:12px}
+.stat b{font-size:22px}
+.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(env(safe-area-inset-bottom) + 6px)}
+.tabs button{flex:1;max-width:110px;border:0;background:none;color:var(--muted);font:inherit;font-size:11px;padding:6px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button i{font-style:normal;font-size:20px}
+.tabs button.on{color:var(--accent);font-weight:600}
+input,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
+textarea{min-height:76px;resize:vertical}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.form label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+.btn{border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-weight:600;padding:12px;cursor:pointer;width:100%}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--ink)}
+.x{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px}
+.day{border-left:4px solid var(--line)}
+.day.today{border-left-color:var(--accent)}
+.day h3{margin:0 0 6px;font-size:15px}
+.day p{font-size:14px;margin:3px 0}.day p b{color:var(--muted);font-weight:600;display:inline-block;width:78px}
+.free-item{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.free-item:last-child{border-bottom:0}.free-item small{color:var(--muted)}
+.tag{font-size:11px;border-radius:99px;padding:2px 8px;background:var(--gold-soft);color:var(--gold);margin-left:6px}
+ul.tips{margin:0;padding-left:18px;font-size:14px}ul.tips li{margin:4px 0}
+svg text{fill:var(--muted);font-size:10px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="tabs" id="tabs"></nav>
+<script>
+(function(){
+var START=Date.UTC(2026,10,23), GOAL=65, START_W=84;
+var MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+var DAYS=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+var MENU=[
+ {d:'Arepa de chía y linaza con omelette de 3 huevos y verduras',dk:'~430 kcal · 24 g proteína',a:'Pollo con ensalada y arroz',c:'Merluza con judías verdes'},
+ {d:'Batido de proteína con arándanos, 2 cdas de avena y banana',dk:'~330 kcal · 28 g proteína',a:'Pabellón ajustado: 120 g de carne mechada, caraotas, ½ taza de arroz, 2 tajadas al horno',c:'Pollo con brócoli'},
+ {d:'Pankecas de proteína (sin miel o solo ½ cucharadita)',dk:'~560 kcal · 40 g proteína · mejor en día de entreno',a:'Pollo con ensalada y quinoa',c:'Salmón con espárragos'},
+ {d:'Sardinas con sofrito y pan integral',dk:'~400 kcal · 25 g proteína',a:'Pollo con ensalada y arroz',c:'Pollo con calabacín'},
+ {d:'Sándwich de trucha con aguacate',dk:'~440 kcal · 28 g proteína',a:'Arepa rellena pequeña (pollo, carne mechada o huevo) con aguacate',c:'Merluza con judías verdes'},
+ {d:'Arepa de chía y linaza con omelette de 3 huevos y verduras',dk:'~430 kcal · 24 g proteína',a:'Pollo con ensalada y quinoa',c:'Pollo con brócoli'},
+ {d:'Batido de proteína con arándanos, 2 cdas de avena y banana',dk:'~330 kcal · 28 g proteína',a:'Pollo con ensalada y arroz',c:'Pescado con verduras'}
+];
+var SNACK='Fruta con un puñado de frutos secos, o queso fresco con zanahoria (~200 kcal)';
+var CHECKS=[['d','Desayuno del plan'],['a','Almuerzo del plan'],['m','Merienda'],['c','Cena del plan'],['p','Proteína: 110 g o más'],['w','Agua: 2 litros o más'],['s','Pasos: 7.000 o más'],['t','Entreno hecho'],['z','Dormir 7-8 horas']];
+
+var S={checks:{},log:[],workout:{}};
+try{var raw=localStorage.getItem('plan-v1');if(raw){S=Object.assign(S,JSON.parse(raw))}}catch(e){}
+S.checks=S.checks||{};S.log=S.log||[];S.workout=S.workout||{};S.menus=S.menus||{};S.notes=S.notes||{};
+
+var tab='hoy', sel=midnight(new Date());
+var mWeek=monday(new Date()),editing=false;
+function monday(d){var x=midnight(d);x.setDate(x.getDate()-wIdx(x));return x}
+function wkKey(d){return key(monday(d))}
+function copyMenu(m){return m.map(function(x){return {d:x.d,dk:x.dk||'',a:x.a,c:x.c}})}
+function weekMenu(d){var m=S.menus[wkKey(d)];return m&&m.length===7?m:MENU}
+function ensureWeek(d){var k=wkKey(d);if(!S.menus[k]||S.menus[k].length!==7)S.menus[k]=copyMenu(MENU);return S.menus[k]}
+function midnight(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function pad(n){return String(n).padStart(2,'0')}
+function key(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function utc(d){return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())}
+function diffDays(a,b){return Math.round((utc(a)-utc(b))/864e5)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function fmt(d){return d.getDate()+' de '+MONTHS[d.getMonth()]+' de '+d.getFullYear()}
+function wIdx(d){return (d.getDay()+6)%7}
+function freeType(d){
+  var y=d.getFullYear(),m=d.getMonth(),n=d.getDate();
+  if(y===2026&&m===11&&[1,2,24,31].indexOf(n)>-1)return 'dia';
+  if(y>=2027&&(n===1||n===16))return 'comida';
+  return null;
+}
+function freeList(){
+  var out=[],d=new Date(2026,11,1),end=new Date(2027,11,31);
+  while(d<=end){var t=freeType(d);if(t)out.push({date:new Date(d),type:t});d.setDate(d.getDate()+1)}
+  return out;
+}
+function when(n){return n===0?'Hoy':n===1?'Mañana':'en '+n+' días'}
+
+/* ---- persistencia ---- */
+var timer,last='',docRef=null;
+function save(){
+  try{localStorage.setItem('plan-v1',JSON.stringify(S))}catch(e){}
+  clearTimeout(timer);
+  timer=setTimeout(async function(){
+    if(!docRef)return;
+    var s=JSON.stringify(S);if(s===last)return;
+    try{await docRef.set(JSON.parse(s));last=s}catch(e){}
+  },800);
+}
+(async function(){
+  try{
+    if(typeof claude==='undefined'||!claude.use)return;
+    var r=await Promise.race([Promise.all([claude.use('db'),claude.use('user')]),new Promise(function(res){setTimeout(function(){res([null,null])},10000)})]);
+    var db=r[0],user=r[1];if(!db||!user)return;
+    var id=await user.id();if(!id)return;
+    docRef=db.collection('data/users/'+id).doc('state');
+    var snap=await docRef.get(),data=null;
+    if(snap){
+      if(typeof snap.data==='function'){if(snap.exists!==false)data=snap.data()}
+      else data=snap.data||snap;
+    }
+    if(data&&typeof data==='object'&&(data.checks||data.log||data.workout||data.menus)){
+      S=Object.assign({checks:{},log:[],workout:{}},data);
+      S.checks=S.checks||{};S.log=S.log||[];S.workout=S.workout||{};S.menus=S.menus||{};S.notes=S.notes||{};
+      last=JSON.stringify(S);
+      try{localStorage.setItem('plan-v1',last)}catch(e){}
+      render();
+    }else{save()}
+  }catch(e){}
+})();
+
+/* ---- vistas ---- */
+function bannerFor(d){
+  var t=freeType(d);
+  if(t==='dia')return '<div class="banner free"><b>Día libre.</b> Disfruta sin culpa, pero mantén el desayuno y la proteína. Mañana vuelves al plan sin compensar.</div>';
+  if(t==='comida')return '<div class="banner free"><b>Comida libre hoy.</b> Una sola comida; el resto del día sigue el plan.</div>';
+  return '';
+}
+function viewHoy(){
+  var n=diffDays(sel,new Date(START)),k=key(sel),c=S.checks[k]||{},m=weekMenu(sel)[wIdx(sel)];
+  var sub=n<0?'El plan empieza el 23/11 · faltan '+(-n)+' días':'Día '+(n+1)+' del plan';
+  var done=CHECKS.filter(function(x){return c[x[0]]}).length;
+  var h='<div class="hdr"><button class="nav" data-act="prev" aria-label="Día anterior">‹</button><div><h1>'+esc(sel.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}))+'</h1><p class="sub">'+sub+'</p></div><button class="nav" data-act="next" aria-label="Día siguiente">›</button></div>';
+  h+=bannerFor(sel);
+  var nt=S.notes[wkKey(sel)];if(nt&&String(nt).trim())h+='<div class="banner info"><b>Esta semana:</b> '+esc(nt)+'</div>';
+  h+='<h2>Menú de hoy</h2><div class="card">'
+   +'<div class="meal"><div><b>Desayuno</b>'+esc(m.d)+'<span class="k">'+esc(m.dk)+'</span></div></div>'
+   +'<div class="meal"><div><b>Almuerzo</b>'+esc(m.a)+'<span class="k">~480 kcal · ~45 g proteína con el pollo</span></div></div>'
+   +'<div class="meal"><div><b>Merienda</b>'+esc(SNACK)+'</div></div>'
+   +'<div class="meal"><div><b>Cena</b>'+esc(m.c)+'<span class="k">~430 kcal · 200 g de verduras, 1 cdta de aceite</span></div></div></div>';
+  h+='<h2>Checklist</h2><div class="card"><div class="row"><b>'+done+' de '+CHECKS.length+'</b><span class="sub">'+Math.round(done/CHECKS.length*100)+'%</span></div><div class="bar"><i style="width:'+(done/CHECKS.length*100)+'%"></i></div>';
+  CHECKS.forEach(function(x){h+='<button class="chk'+(c[x[0]]?' on':'')+'" data-chk="'+x[0]+'"><span class="box">'+(c[x[0]]?'✓':'')+'</span><span class="t">'+x[1]+'</span></button>'});
+  h+='</div>';
+  var w=S.workout[wIdx(sel)];
+  if(w&&String(w).trim())h+='<h2>Entreno de hoy</h2><div class="card" style="white-space:pre-wrap">'+esc(w)+'</div>';
+  return h;
+}
+function viewMenu(){
+  var wk=key(mWeek),sun=new Date(mWeek.getFullYear(),mWeek.getMonth(),mWeek.getDate()+6),menu=weekMenu(mWeek),custom=!!S.menus[wk];
+  var h='<div class="hdr"><button class="nav" data-act="mprev" aria-label="Semana anterior">‹</button><div><h1 style="text-transform:none">Semana del '+mWeek.getDate()+' al '+sun.getDate()+' de '+MONTHS[sun.getMonth()]+'</h1><p class="sub">'+(custom?'Menú personalizado':'Menú base')+'</p></div><button class="nav" data-act="mnext" aria-label="Semana siguiente">›</button></div>';
+  var bs='style="font-size:14px;padding:10px 6px;flex:1"';
+  h+='<div class="card"><label class="sub" style="display:block;margin-bottom:4px">Nota de la semana (viaje, semana difícil, en casa…)</label><input data-note="1" value="'+esc(S.notes[wk]||'')+'" placeholder="Ej.: semana en casa, cocino todo"><div style="display:flex;gap:8px;margin-top:10px"><button class="btn'+(editing?'':' ghost')+'" '+bs+' data-act="edit">'+(editing?'Listo':'Editar menú')+'</button>'+(custom?'<button class="btn ghost" '+bs+' data-act="reset">Restablecer</button>':'')+'<button class="btn ghost" '+bs+' data-act="copyprev">Copiar anterior</button></div></div>';
+  var tdy=key(monday(new Date()))===wk?wIdx(midnight(new Date())):-1;
+  menu.forEach(function(m,i){
+    if(editing){
+      h+='<div class="card day"><h3>'+DAYS[i]+'</h3><label class="sub">Desayuno</label><input data-m="'+i+':d" value="'+esc(m.d)+'"><label class="sub" style="display:block;margin-top:6px">Almuerzo</label><input data-m="'+i+':a" value="'+esc(m.a)+'"><label class="sub" style="display:block;margin-top:6px">Cena</label><input data-m="'+i+':c" value="'+esc(m.c)+'"></div>';
+    }else{
+      h+='<div class="card day'+(i===tdy?' today':'')+'"><h3>'+DAYS[i]+(i===tdy?' · hoy':'')+'</h3>'
+       +'<p><b>Desayuno</b>'+esc(m.d)+'</p><p><b>Almuerzo</b>'+esc(m.a)+'</p><p><b>Cena</b>'+esc(m.c)+'</p></div>';
+    }
+  });
+  h+='<h2>Porciones</h2><div class="card"><ul class="tips">'
+   +'<li><b>Merienda:</b> '+esc(SNACK)+'</li>'
+   +'<li><b>Almuerzo:</b> 150 g de pollo cocido, ensalada con 1 cda de aceite y ½ taza de arroz o quinoa.</li>'
+   +'<li><b>Cena:</b> 150 g de pollo, 180 g de pescado blanco o 130 g de salmón, 200 g de verduras y 1 cdta de aceite. Añade 100 g de patata o ⅓ de taza de arroz solo en días de entreno.</li>'
+   +'<li><b>Comida venezolana:</b> máximo 2 veces por semana ajustada. Empanadas, tequeños, tostones y hallacas, para las fechas libres.</li>'
+   +'<li><b>Objetivo diario:</b> 1.600-1.700 kcal, 110-125 g de proteína, 2 litros de agua.</li></ul></div>';
+  return h;
+}
+function viewCal(){
+  var today=midnight(new Date()),all=freeList(),up=all.filter(function(f){return f.date>=today});
+  var h='<div class="hdr"><div><h1>Fechas libres</h1><p class="sub">Diciembre 2026 y cada 15 días en 2027</p></div></div>';
+  if(up.length){
+    var f=up[0],n=diffDays(f.date,today);
+    h+='<div class="banner free"><b>Próxima: '+esc(f.date.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}))+'</b><br>'+when(n)+' · '+(f.type==='dia'?'día libre':'comida libre')+'</div>';
+  }
+  var cur='';
+  h+='<div class="card">';
+  all.forEach(function(f){
+    var label=MONTHS[f.date.getMonth()]+' '+f.date.getFullYear();
+    if(label!==cur){cur=label;h+='<div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:12px 0 2px;font-weight:600">'+label+'</div>'}
+    var past=f.date<today;
+    h+='<div class="free-item" style="'+(past?'opacity:.45':'')+'"><span>'+esc(f.date.toLocaleDateString('es-ES',{weekday:'long',day:'numeric'}))+'<span class="tag">'+(f.type==='dia'?'día libre':'comida libre')+'</span></span><small>'+(past?'pasado':when(diffDays(f.date,today)))+'</small></div>';
+  });
+  h+='</div><h2>Cómo llevarlos</h2><div class="card"><ul class="tips"><li>Mantén el desayuno del plan y la proteína.</li><li>El alcohol y el extra, en la comida o la cena.</li><li>No compenses saltándote comidas al día siguiente.</li><li>La báscula puede subir 1-2 kg por agua y sal; baja sola.</li><li>31/12 y 1/1 van seguidos: haz que uno de los dos sea más tranquilo.</li></ul></div>';
+  return h;
+}
+function lastW(){
+  var l=S.log.filter(function(e){return e.w});
+  return l.length?l[l.length-1].w:null;
+}
+function chart(){
+  var pts=S.log.filter(function(e){return e.w}).map(function(e){var p=e.d.split('-');return {t:Date.UTC(+p[0],+p[1]-1,+p[2]),w:+e.w}});
+  if(!pts.length)return '';
+  var W=520,H=200,L=34,R=10,T=10,B=22;
+  var t0=Math.min(START,pts[0].t),t1=Math.max(pts[pts.length-1].t,t0+864e5*30);
+  var wmax=Math.max(START_W,Math.max.apply(null,pts.map(function(p){return p.w})))+1,wmin=GOAL-2;
+  function x(t){return L+(t-t0)/(t1-t0)*(W-L-R)}
+  function y(w){return T+(wmax-w)/(wmax-wmin)*(H-T-B)}
+  var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Evolución del peso">';
+  [GOAL,Math.round((GOAL+START_W)/2),START_W].forEach(function(v){s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--line)"/><text x="'+(L-4)+'" y="'+(y(v)+3)+'" text-anchor="end">'+v+'</text>'});
+  s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(GOAL)+'" y2="'+y(GOAL)+'" stroke="var(--green)" stroke-dasharray="5 4"/>';
+  var all=[{t:START,w:START_W}].concat(pts);
+  s+='<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" points="'+all.map(function(p){return x(p.t)+','+y(p.w)}).join(' ')+'"/>';
+  all.forEach(function(p){s+='<circle cx="'+x(p.t)+'" cy="'+y(p.w)+'" r="3.5" fill="var(--accent)"/>'});
+  s+='</svg>';
+  return '<div class="card">'+s+'<p class="sub">Línea verde: meta de '+GOAL+' kg</p></div>';
+}
+function viewProg(){
+  var cur=lastW(),now=cur!==null?cur:START_W;
+  var pct=Math.max(0,Math.min(100,(START_W-now)/(START_W-GOAL)*100));
+  var h='<div class="hdr"><div><h1>Progreso</h1><p class="sub">Mide el peso una vez por semana y la cintura cada 2 semanas</p></div></div>';
+  h+='<div class="stats"><div class="stat"><small>Inicio</small><b>'+START_W+' kg</b></div><div class="stat"><small>Actual</small><b>'+now+' kg</b></div><div class="stat"><small>Meta</small><b>'+GOAL+' kg</b></div><div class="stat"><small>Te faltan</small><b>'+Math.max(0,Math.round((now-GOAL)*10)/10)+' kg</b></div></div>';
+  h+='<div class="card"><div class="row"><b>'+Math.round(pct)+'% del camino</b><span class="sub">'+Math.round((START_W-now)*10)/10+' kg perdidos</span></div><div class="bar"><i style="width:'+pct+'%"></i></div></div>';
+  h+=chart();
+  h+='<h2>Añadir medida</h2><div class="card"><div class="form"><div><label>Fecha</label><input type="date" id="f-d" value="'+key(new Date())+'"></div><div><label>Peso (kg)</label><input type="number" inputmode="decimal" step="0.1" id="f-w" placeholder="83.5"></div><div><label>Cintura (cm)</label><input type="number" inputmode="decimal" step="0.5" id="f-c" placeholder="opcional"></div><div style="display:flex;align-items:flex-end"><button class="btn" data-act="addlog">Guardar</button></div></div></div>';
+  if(S.log.length){
+    h+='<h2>Historial</h2><div class="card">';
+    S.log.slice().reverse().slice(0,20).forEach(function(e){
+      var p=e.d.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]);
+      h+='<div class="free-item"><span>'+esc(d.toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'}))+'</span><span>'+(e.w?e.w+' kg':'')+(e.c?' · '+e.c+' cm':'')+'<button class="x" data-del="'+esc(e.d)+'" aria-label="Borrar">×</button></span></div>';
+    });
+    h+='</div>';
+  }
+  h+='<h2>Copia de seguridad</h2><div class="card"><p class="sub" style="margin-bottom:10px">Tus datos se guardan en este teléfono. Exporta una copia de vez en cuando o para pasarlos a otro dispositivo.</p><div style="display:flex;gap:8px"><button class="btn ghost" data-act="export">Exportar</button><button class="btn ghost" data-act="import">Importar</button></div><input type="file" id="f-imp" accept="application/json,.json" style="display:none"></div>';
+  return h;
+}
+function viewEnt(){
+  var tdy=wIdx(midnight(new Date()));
+  var h='<div class="hdr"><div><h1>Entrenamiento</h1><p class="sub">Escribe aquí tu rutina de cada día</p></div></div>';
+  h+='<div class="banner info">Pega la rutina de tu proyecto en cada día. Se guarda sola. Deja vacío los días de descanso.</div>';
+  DAYS.forEach(function(n,i){
+    h+='<div class="card"><div class="row" style="margin-bottom:6px"><b>'+n+'</b>'+(i===tdy?'<span class="tag" style="background:var(--accent-soft);color:var(--accent)">hoy</span>':'')+'</div><textarea data-w="'+i+'" placeholder="Descanso o escribe tu rutina">'+esc(S.workout[i]||'')+'</textarea></div>';
+  });
+  return h;
+}
+var TABS=[['hoy','Hoy','☀️'],['menu','Menú','🍽️'],['cal','Fechas','📅'],['prog','Progreso','📈'],['ent','Entreno','💪']];
+function render(){
+  var h=tab==='hoy'?viewHoy():tab==='menu'?viewMenu():tab==='cal'?viewCal():tab==='prog'?viewProg():viewEnt();
+  document.getElementById('app').innerHTML=h;
+  document.getElementById('tabs').innerHTML=TABS.map(function(t){return '<button data-tab="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'"><i>'+t[2]+'</i>'+t[1]+'</button>'}).join('');
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.tab){tab=b.dataset.tab;render();window.scrollTo(0,0);return}
+  if(b.dataset.chk){var k=key(sel);S.checks[k]=S.checks[k]||{};S.checks[k][b.dataset.chk]=!S.checks[k][b.dataset.chk];save();render();return}
+  if(b.dataset.del){S.log=S.log.filter(function(x){return x.d!==b.dataset.del});save();render();return}
+  var a=b.dataset.act;
+  if(a==='prev'){sel=new Date(sel.getFullYear(),sel.getMonth(),sel.getDate()-1);render()}
+  else if(a==='next'){sel=new Date(sel.getFullYear(),sel.getMonth(),sel.getDate()+1);render()}
+  else if(a==='mprev'){mWeek=new Date(mWeek.getFullYear(),mWeek.getMonth(),mWeek.getDate()-7);render()}
+  else if(a==='mnext'){mWeek=new Date(mWeek.getFullYear(),mWeek.getMonth(),mWeek.getDate()+7);render()}
+  else if(a==='edit'){editing=!editing;if(editing)ensureWeek(mWeek);save();render()}
+  else if(a==='reset'){delete S.menus[key(mWeek)];editing=false;save();render()}
+  else if(a==='copyprev'){var pv=new Date(mWeek.getFullYear(),mWeek.getMonth(),mWeek.getDate()-7);S.menus[key(mWeek)]=copyMenu(weekMenu(pv));save();render()}
+  else if(a==='export'){
+    var blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}),u=URL.createObjectURL(blob),l=document.createElement('a');
+    l.href=u;l.download='miplan-'+key(new Date())+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},1000);
+  }
+  else if(a==='import'){document.getElementById('f-imp').click()}
+  else if(a==='addlog'){
+    var d=document.getElementById('f-d').value,w=parseFloat(document.getElementById('f-w').value),c=parseFloat(document.getElementById('f-c').value);
+    if(!d||(isNaN(w)&&isNaN(c)))return;
+    var ex=S.log.filter(function(x){return x.d===d})[0];
+    if(!ex){ex={d:d};S.log.push(ex)}
+    if(!isNaN(w))ex.w=w;if(!isNaN(c))ex.c=c;
+    S.log.sort(function(p,q){return p.d<q.d?-1:1});
+    save();render();
+  }
+});
+document.addEventListener('change',function(e){
+  var t=e.target;if(t.id!=='f-imp'||!t.files||!t.files[0])return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var d=JSON.parse(r.result);
+      if(!d||typeof d!=='object'||!(d.checks||d.log||d.workout||d.menus))throw 0;
+      if(!confirm('¿Reemplazar los datos actuales por los de la copia?'))return;
+      S=Object.assign({checks:{},log:[],workout:{},menus:{},notes:{}},d);save();render();alert('Datos importados');
+    }catch(err){alert('El archivo no es una copia válida de Mi plan')}
+  };
+  r.readAsText(t.files[0]);
+});
+document.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.dataset&&t.dataset.w!==undefined){S.workout[t.dataset.w]=t.value;save()}
+  else if(t.dataset&&t.dataset.m){var q=t.dataset.m.split(':'),wm=ensureWeek(mWeek);wm[+q[0]][q[1]]=t.value;if(q[1]==='d')wm[+q[0]].dk='';save()}
+  else if(t.dataset&&t.dataset.note){S.notes[key(mWeek)]=t.value;save()}
+});
+render();
+if('serviceWorker' in navigator&&location.protocol!=='file:'){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+})();
+</script>
+</body>
+</html>

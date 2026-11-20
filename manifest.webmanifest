@@ -1,0 +1,17 @@
+{
+  "name": "Mi plan: nutrición y entreno",
+  "short_name": "Mi plan",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf6f1",
+  "theme_color": "#c4572e",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+    {"src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}
