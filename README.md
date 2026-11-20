@@ -3,7 +3,7 @@ App de nutrición y entrenamiento para el móvil (PWA: se instala desde el naveg
 
 ## Pestañas
 - **Hoy**: menú del día, calorías y proteína del día (registro por comida), agua en vasos, checklist y entreno del día.
-- **Menú**: semana editable, platos desglosados en gramos y kcal, tabla de alimentos (con tus propios alimentos) y lista de la compra semanal.
+- **Menú**: semana editable, platos desglosados en gramos y kcal (crea los tuyos o copia y modifica uno), tabla de alimentos (con tus propios alimentos) y lista de la compra semanal.
 - **Fechas**: días y comidas libres.
 - **Progreso**: peso, cintura, cadera, pecho, brazo y muslo, con gráfica de peso.
 - **Ajustes**: color, tema claro/oscuro, orden de pestañas, objetivos diarios, recordatorios en el Calendario y copia de seguridad.

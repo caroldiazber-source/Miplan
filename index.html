@@ -200,7 +200,8 @@ var FI={};FOODS.forEach(function(f){FI[f.id]=f});
 var PI={};PLATOS.forEach(function(d){PI[d.n.toLowerCase()]=d});
 function food(id){return FI[id]||S.foods.filter(function(f){return f.id===id})[0]||null}
 function allFoods(){return FOODS.concat(S.foods)}
-function plato(n){return n?PI[String(n).trim().toLowerCase()]||null:null}
+function plato(n){if(!n)return null;var q=String(n).trim().toLowerCase();return S.platos.filter(function(p){return p.n.toLowerCase()===q})[0]||PI[q]||null}
+function allPlatos(){var own={};S.platos.forEach(function(p){own[p.n.toLowerCase()]=1});return S.platos.concat(PLATOS.filter(function(p){return !own[p.n.toLowerCase()]}))}
 function kc(f,g){return Math.round(f.k*g/100)}
 function pr(f,g){return Math.round(f.p*g/10)/10}
 function tot(items){var k=0,p=0;items.forEach(function(x){var f=food(x[0]);if(f){k+=f.k*x[1]/100;p+=f.p*x[1]/100}});return {k:Math.round(k),p:Math.round(p)}}
@@ -214,14 +215,14 @@ var S={checks:{},log:[],workout:{}};
 try{var raw=localStorage.getItem('plan-v1');if(raw){S=Object.assign(S,JSON.parse(raw))}}catch(e){}
 function norm(){
   S.checks=S.checks||{};S.log=S.log||[];S.workout=S.workout||{};S.menus=S.menus||{};S.notes=S.notes||{};S.exn=S.exn||{};
-  S.food=S.food||{};S.water=S.water||{};S.shop=S.shop||{};S.foods=S.foods||[];
+  S.food=S.food||{};S.water=S.water||{};S.shop=S.shop||{};S.foods=S.foods||[];S.platos=S.platos||[];
   var c=S.cfg||{};S.cfg={accent:c.accent||'naranja',theme:c.theme||'auto',tabs:c.tabs||null,hide:c.hide||{},kcal:c.kcal||1650,prot:c.prot||110,vasos:c.vasos||8,
     rem:Object.assign({d:'08:00',a:'13:30',m:'17:30',c:'20:30',agua:true},c.rem||{})};
 }
 norm();
 
 var tab='hoy', sel=midnight(new Date());
-var mWeek=monday(new Date()),editing=false,msub='sem',pick=null;
+var mWeek=monday(new Date()),editing=false,msub='sem',pick=null,ed=null;
 function monday(d){var x=midnight(d);x.setDate(x.getDate()-wIdx(x));return x}
 function wkKey(d){return key(monday(d))}
 function copyMenu(m){return m.map(function(x){return {d:x.d,dk:x.dk||'',a:x.a,c:x.c}})}
@@ -396,21 +397,22 @@ function viewMenu(){
 function dishCard(p){
   var t=tot(p.i),h='<div class="card"><div class="row" style="align-items:flex-start"><b style="font-size:15px">'+esc(p.n)+'</b><span class="tag" style="white-space:nowrap;background:var(--accent-soft);color:var(--accent)">'+t.k+' kcal</span></div><p class="sub" style="margin:2px 0 2px">'+t.p+' g de proteína</p>';
   p.i.forEach(function(x){var f=food(x[0]);if(f)h+='<div class="fi" style="font-size:14px;padding:7px 0"><span>'+esc(f.n)+'</span><small>'+gtxt(f,x[1])+' · '+kc(f,x[1])+' kcal</small></div>'});
+  h+='<div style="display:flex;gap:6px;margin-top:10px">'+(p.id?'<button class="mini" data-pedit="'+esc(p.id)+'">Editar</button><button class="mini" style="color:var(--muted)" data-pdel="'+esc(p.id)+'">Borrar</button>':'<button class="mini" data-pcopy="'+esc(p.n)+'">Copiar y modificar</button>')+'</div>';
   return h+'</div>';
 }
 function viewPlatos(){
-  var h='<p class="sub">Cada plato desglosado en gramos y calorías. Valores aproximados. En Hoy puedes registrarlos con un toque.</p>';
-  MEALS.forEach(function(ml){h+='<h2>'+ml[1]+'</h2>';PLATOS.filter(function(p){return p.m===ml[0]}).forEach(function(p){h+=dishCard(p)})});
+  var h='<p class="sub">Cada plato desglosado en gramos y calorías. Valores aproximados. En Hoy puedes registrarlos con un toque.</p><button class="btn" style="margin-top:12px" data-act="pnew">＋ Crear plato</button>';
+  MEALS.forEach(function(ml){h+='<h2>'+ml[1]+'</h2>';allPlatos().filter(function(p){return p.m===ml[0]}).forEach(function(p){h+=(p.id?'<p class="sub" style="margin:0 2px 4px;font-size:12px">⭐ Plato tuyo</p>':'')+dishCard(p)})});
   return h;
 }
-function foodRows(btn){
+function foodRows(btn){var at=btn===true?'pf':btn;
   var h='';
   GROUPS.forEach(function(g){
     var fs=allFoods().filter(function(f){return f.g===g[0]});if(!fs.length)return;
     h+='<div class="grp">'+g[1]+'</div>';
     fs.forEach(function(f){
       var inner='<span>'+esc(f.n)+'</span><small>'+gtxt(f,f.u)+'<br><b style="color:var(--ink)">'+kc(f,f.u)+' kcal</b> · '+num(pr(f,f.u))+' g prot.</small>';
-      h+=btn?'<button class="fi" data-pf="'+esc(f.id)+'" data-s="'+esc(fold(f.n))+'">'+inner+'</button>'
+      h+=btn?'<button class="fi" data-'+at+'="'+esc(f.id)+'" data-s="'+esc(fold(f.n))+'">'+inner+'</button>'
             :'<div class="fi" data-s="'+esc(fold(f.n))+'">'+inner+(f.g==='cus'?'<button class="x" data-cdel="'+esc(f.id)+'" aria-label="Borrar">×</button>':'')+'</div>';
     });
   });
@@ -455,9 +457,10 @@ function viewSemana(){
   var bs='style="font-size:14px;padding:10px 6px;flex:1"';
   h+='<div class="card"><label class="sub" style="display:block;margin-bottom:4px">Nota de la semana (viaje, semana difícil, en casa…)</label><input data-note="1" value="'+esc(S.notes[wk]||'')+'" placeholder="Ej.: semana en casa, cocino todo"><div style="display:flex;gap:8px;margin-top:10px"><button class="btn'+(editing?'':' ghost')+'" '+bs+' data-act="edit">'+(editing?'Listo':'Editar menú')+'</button>'+(custom?'<button class="btn ghost" '+bs+' data-act="reset">Restablecer</button>':'')+'<button class="btn ghost" '+bs+' data-act="copyprev">Copiar anterior</button></div></div>';
   var tdy=key(monday(new Date()))===wk?wIdx(midnight(new Date())):-1;
+  if(editing)['d','a','c'].forEach(function(k){h+='<datalist id="dl-'+k+'">'+allPlatos().filter(function(p){return p.m===k}).map(function(p){return '<option value="'+esc(p.n)+'">'}).join('')+'</datalist>'});
   menu.forEach(function(m,i){
     if(editing){
-      h+='<div class="card day"><h3>'+DAYS[i]+'</h3>'+(i===0?'<p class="sub" style="margin-bottom:8px">Para que salgan calorías y lista de la compra, escribe el nombre exacto de un plato de la pestaña Platos.</p>':'')+'<label class="sub">Desayuno</label><input data-m="'+i+':d" value="'+esc(m.d)+'"><label class="sub" style="display:block;margin-top:6px">Almuerzo</label><input data-m="'+i+':a" value="'+esc(m.a)+'"><label class="sub" style="display:block;margin-top:6px">Cena</label><input data-m="'+i+':c" value="'+esc(m.c)+'"></div>';
+      h+='<div class="card day"><h3>'+DAYS[i]+'</h3>'+(i===0?'<p class="sub" style="margin-bottom:8px">Al escribir te sugiere platos de la pestaña Platos (también los tuyos). Si eliges uno, salen sus calorías y entra en la lista de la compra.</p>':'')+'<label class="sub">Desayuno</label><input list="dl-d" data-m="'+i+':d" value="'+esc(m.d)+'"><label class="sub" style="display:block;margin-top:6px">Almuerzo</label><input list="dl-a" data-m="'+i+':a" value="'+esc(m.a)+'"><label class="sub" style="display:block;margin-top:6px">Cena</label><input list="dl-c" data-m="'+i+':c" value="'+esc(m.c)+'"></div>';
     }else{
       var dk=[m.d,m.a,m.c].map(plato),sk=dk.every(Boolean)?dk.reduce(function(a,p){return a+tot(p.i).k},0)+200:0;
       h+='<div class="card day'+(i===tdy?' today':'')+'"><div class="row"><h3>'+DAYS[i]+(i===tdy?' · hoy':'')+'</h3>'+(sk?'<span class="sub">~'+fmtN(sk)+' kcal</span>':'')+'</div>'
@@ -615,10 +618,29 @@ function viewPick(){
      +(f.un?'<p class="sub" style="margin-top:4px">1 '+f.un[1]+' ≈ '+f.un[0]+' g</p>':'')
      +'<button class="btn" style="margin-top:12px" data-act="pkadd">Añadir '+ml+'</button>';
   }else{
-    h+='<div class="row" style="margin-bottom:10px"><b>Añadir '+ml+'</b><button class="x" data-act="pkclose" aria-label="Cerrar">×</button></div><input id="pk-q" class="q" placeholder="Buscar… (arepa, pollo, huevo)" autocomplete="off"><div id="pk-list">'+foodRows(true)+'</div>';
+    h+='<div class="row" style="margin-bottom:10px"><b>Añadir '+ml+'</b><button class="x" data-act="pkclose" aria-label="Cerrar">×</button></div><input id="pk-q" class="q" placeholder="Buscar… (arepa, pollo, huevo)" autocomplete="off"><div id="pk-list">'+(function(){var ds=allPlatos().filter(function(d){return d.m===pick.m}),r='';if(ds.length){r+='<div class="grp">Platos</div>';ds.forEach(function(d){r+='<button class="fi" data-pdish="'+esc(d.n)+'" data-s="'+esc(fold(d.n))+'"><span>'+(d.id?'⭐ ':'')+esc(d.n)+'</span><small><b style="color:var(--ink)">'+tot(d.i).k+' kcal</b> · '+tot(d.i).p+' g prot.</small></button>'})}return r})()+foodRows(true)+'</div>';
   }
   return h+'</div></div>';
 }
+function viewEd(){
+  var h='<div class="sheet"><div>';
+  if(ed.adding){
+    h+='<div class="row" style="margin-bottom:10px"><b>Añadir ingrediente</b><button class="x" data-act="edback">‹ Volver</button></div><input id="pk-q" class="q" placeholder="Buscar… (arepa, pollo, huevo)" autocomplete="off"><div id="pk-list">'+foodRows('ef')+'</div>';
+    return h+'</div></div>';
+  }
+  var t=tot(ed.i);
+  h+='<div class="row" style="margin-bottom:10px"><b>'+(ed.id?'Editar plato':'Nuevo plato')+'</b><button class="x" data-act="edclose" aria-label="Cerrar">×</button></div>';
+  h+='<label class="sub">Nombre</label><input id="ed-n" value="'+esc(ed.n)+'" placeholder="Ej.: Cachapa con queso y jamón">';
+  h+='<div class="seg" style="margin:12px 0">'+MEALS.map(function(m){return '<button data-em="'+m[0]+'" class="'+(ed.m===m[0]?'on':'')+'">'+m[1]+'</button>'}).join('')+'</div>';
+  h+='<div class="card"><div class="row"><b>Ingredientes</b><b id="ed-tot" style="color:var(--accent)">'+t.k+' kcal · '+t.p+' g prot.</b></div>';
+  if(!ed.i.length)h+='<p class="sub" style="padding:10px 0">Aún no hay ingredientes.</p>';
+  ed.i.forEach(function(x,i){var f=food(x[0]);if(!f)return;
+    h+='<div class="fi" style="gap:8px"><span style="flex:1;min-width:0">'+esc(f.n)+'<br><small id="ed-k'+i+'" style="float:none">'+kc(f,x[1])+' kcal</small></span><input type="number" inputmode="decimal" data-eg="'+i+'" value="'+x[1]+'" style="width:76px;flex:none;text-align:right"><span class="sub" style="flex:none">g</span><button class="x" data-edel="'+i+'" aria-label="Quitar">×</button></div>'});
+  h+='<button class="mini" style="margin-top:10px" data-act="edadd">＋ Añadir ingrediente</button></div>';
+  h+='<button class="btn" style="margin-top:4px" data-act="edsave">Guardar plato</button>';
+  return h+'</div></div>';
+}
+function edTot(){var t=tot(ed.i),e=document.getElementById('ed-tot');if(e)e.textContent=t.k+' kcal · '+t.p+' g prot.'}
 function addFood(k,m,id,g){var f=food(id);if(!f||!(g>0))return;(S.food[k]=S.food[k]||[]).push({m:m,id:id,n:f.n.replace(/ \(1 cd.*\)$/,''),g:g,k:kc(f,g),p:pr(f,g)})}
 function protCheck(k){var t=(S.food[k]||[]).reduce(function(a,x){return a+x.p},0);if(t>=S.cfg.prot){S.checks[k]=S.checks[k]||{};S.checks[k].p=true}}
 function render(){
@@ -626,8 +648,8 @@ function render(){
   var V={hoy:viewHoy,menu:viewMenu,cal:viewCal,prog:viewProg,ent:viewEnt,aj:viewAj};
   document.getElementById('app').innerHTML=V[tab]();
   document.getElementById('tabs').innerHTML=vis.map(function(t){return '<button data-tab="'+t+'" class="'+(tab===t?'on':'')+'"><i>'+TABS[t][1]+'</i>'+TABS[t][0]+'</button>'}).join('');
-  document.getElementById('sheet').innerHTML=pick?viewPick():'';
-  document.body.style.overflow=pick?'hidden':'';
+  document.getElementById('sheet').innerHTML=pick?viewPick():ed?viewEd():'';
+  document.body.style.overflow=pick||ed?'hidden':'';
 }
 document.addEventListener('click',function(e){
   if(e.target.dataset&&e.target.dataset.close){pick=null;render();return}
@@ -635,6 +657,13 @@ document.addEventListener('click',function(e){
   if(b.dataset.msub){msub=b.dataset.msub;editing=false;render();window.scrollTo(0,0);return}
   if(b.dataset.dish){var q=b.dataset.dish.split('|'),k0=key(sel),pd=plato(q.slice(1).join('|'));if(pd){pd.i.forEach(function(x){addFood(k0,q[0],x[0],x[1])});S.checks[k0]=S.checks[k0]||{};S.checks[k0][q[0]]=true;protCheck(k0);save();render()}return}
   if(b.dataset.pick){pick={m:b.dataset.pick,f:null};render();return}
+  if(b.dataset.pdish){var kd=key(sel),dd=plato(b.dataset.pdish);if(dd){dd.i.forEach(function(x){addFood(kd,pick.m,x[0],x[1])});S.checks[kd]=S.checks[kd]||{};if(pick.m==='m')S.checks[kd].m=true;protCheck(kd)}pick=null;save();render();return}
+  if(b.dataset.pedit){var pe=S.platos.filter(function(p){return p.id===b.dataset.pedit})[0];if(pe){ed={id:pe.id,m:pe.m,n:pe.n,i:pe.i.map(function(x){return x.slice()})};render()}return}
+  if(b.dataset.pcopy){var pc=plato(b.dataset.pcopy);if(pc){ed={id:null,m:pc.m,n:pc.n+' (mi versión)',i:pc.i.map(function(x){return x.slice()})};render()}return}
+  if(b.dataset.pdel){if(confirm('¿Borrar este plato?')){S.platos=S.platos.filter(function(p){return p.id!==b.dataset.pdel});save();render()}return}
+  if(b.dataset.em){ed.n=document.getElementById('ed-n').value;ed.m=b.dataset.em;render();return}
+  if(b.dataset.ef){var ff=food(b.dataset.ef);ed.i.push([ff.id,ff.u]);ed.adding=false;render();return}
+  if(b.dataset.edel){ed.n=document.getElementById('ed-n').value;ed.i.splice(+b.dataset.edel,1);render();return}
   if(b.dataset.pf){pick.f=b.dataset.pf;render();var gi=document.getElementById('pk-g');if(gi)gi.select();return}
   if(b.dataset.fdel){var k1=key(sel);(S.food[k1]||[]).splice(+b.dataset.fdel,1);save();render();return}
   if(b.dataset.cdel){S.foods=S.foods.filter(function(f){return f.id!==b.dataset.cdel});save();render();return}
@@ -662,6 +691,19 @@ document.addEventListener('click',function(e){
   else if(a==='remagua'){S.cfg.rem.agua=!S.cfg.rem.agua;save();render()}
   else if(a==='wplus'||a==='wminus'){var kw=key(sel);S.water[kw]=Math.max(0,(S.water[kw]||0)+(a==='wplus'?1:-1));S.checks[kw]=S.checks[kw]||{};S.checks[kw].w=S.water[kw]>=S.cfg.vasos;save();render()}
   else if(a==='pkclose'){pick=null;render()}
+  else if(a==='pnew'){ed={id:null,m:'a',n:'',i:[]};render()}
+  else if(a==='edclose'){if(!ed.i.length||confirm('¿Salir sin guardar?')){ed=null;render()}}
+  else if(a==='edadd'){ed.n=document.getElementById('ed-n').value;ed.adding=true;render()}
+  else if(a==='edback'){ed.adding=false;render()}
+  else if(a==='edsave'){
+    ed.n=document.getElementById('ed-n').value.trim();
+    if(!ed.n){alert('Ponle un nombre al plato');return}
+    if(!ed.i.length){alert('Añade al menos un ingrediente');return}
+    var dup=S.platos.filter(function(p){return p.id!==ed.id&&p.n.toLowerCase()===ed.n.toLowerCase()})[0];if(dup){alert('Ya tienes un plato con ese nombre');return}
+    var obj={id:ed.id||'p'+Date.now().toString(36),m:ed.m,n:ed.n,i:ed.i.filter(function(x){return x[1]>0})};
+    if(ed.id)S.platos=S.platos.map(function(p){return p.id===ed.id?obj:p});else S.platos.push(obj);
+    ed=null;msub='platos';save();render();
+  }
   else if(a==='pkback'){pick.f=null;render()}
   else if(a==='pkadd'){var kp=key(sel),gg=parseFloat(String(document.getElementById('pk-g').value).replace(',','.'));if(gg>0){addFood(kp,pick.m,pick.f,gg);if(pick.m==='m'){S.checks[kp]=S.checks[kp]||{};S.checks[kp].m=true}protCheck(kp);pick=null;save();render()}}
   else if(a==='cfadd'){
@@ -710,6 +752,7 @@ document.addEventListener('input',function(e){
     box.querySelectorAll('[data-s]').forEach(function(r){r.style.display=!q||r.dataset.s.indexOf(q)>-1?'':'none'});
     box.querySelectorAll('.grp').forEach(function(g){g.style.display=q?'none':''});
   }
+  else if(t.dataset&&t.dataset.eg!==undefined){var ix=+t.dataset.eg,gv=parseFloat(String(t.value).replace(',','.'))||0,fe=food(ed.i[ix][0]);ed.i[ix][1]=gv;document.getElementById('ed-k'+ix).textContent=kc(fe,gv)+' kcal';edTot()}
   else if(t.id==='pk-g'){var f=food(pick.f),g=parseFloat(String(t.value).replace(',','.'))||0;document.getElementById('pk-k').textContent=kc(f,g)+' kcal · '+num(pr(f,g))+' g prot.'}
 });
 applyTheme();
