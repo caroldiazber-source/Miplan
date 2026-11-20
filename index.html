@@ -91,13 +91,13 @@ var WORKOUT={
  3:'Día C · Full body y calistenia\n• Sentadilla sumo con kettlebell: 3×10 · 15 kg\n• Remo invertido en suspensión: 3×11\n• Puente de glúteos a una pierna (brazos en el pecho): 3×6 por pierna\n• Press de pecho en el suelo con mancuernas: 4×8-12 · 10 kg\n• Sentadilla lateral con mancuernas: 3×10 · 12 kg\n• Curl martillo con mancuernas: 3×8-10 · 7,5 kg\n• Plancha lateral (principiante): 6×30 s\n• Saltar la cuerda: 4×30 s',
  4:'Correr'
 };
-function workoutFor(i){var w=S.workout[i];return w===undefined||w===null?(WORKOUT[i]||''):w}
+function workoutFor(i){var w=S.workout[i];return w===undefined||w===null?(S.og?'':(WORKOUT[i]||'')):w}
 var SNACK='Fruta con un puñado de frutos secos, o queso fresco con zanahoria (~200 kcal)';
 var CHECKS=[['d','Desayuno del plan'],['a','Almuerzo del plan'],['m','Merienda'],['c','Cena del plan'],['p','Proteína: 110 g o más'],['w','Agua: 2 litros o más'],['s','Pasos: 7.000 o más'],['t','Entreno hecho'],['z','Dormir 7-8 horas']];
 
 var S={checks:{},log:[],workout:{}};
 try{var raw=localStorage.getItem('plan-v1');if(raw){S=Object.assign(S,JSON.parse(raw))}}catch(e){}
-S.checks=S.checks||{};S.log=S.log||[];S.workout=S.workout||{};S.menus=S.menus||{};S.notes=S.notes||{};
+S.checks=S.checks||{};S.log=S.log||[];S.workout=S.workout||{};S.menus=S.menus||{};S.notes=S.notes||{};S.exn=S.exn||{};
 
 var tab='hoy', sel=midnight(new Date());
 var mWeek=monday(new Date()),editing=false;
@@ -150,15 +150,69 @@ function save(){
       if(typeof snap.data==='function'){if(snap.exists!==false)data=snap.data()}
       else data=snap.data||snap;
     }
-    if(data&&typeof data==='object'&&(data.checks||data.log||data.workout||data.menus)){
+    if(data&&typeof data==='object'&&(data.checks||data.log||data.workout||data.menus||data.og)){
       S=Object.assign({checks:{},log:[],workout:{}},data);
-      S.checks=S.checks||{};S.log=S.log||[];S.workout=S.workout||{};S.menus=S.menus||{};S.notes=S.notes||{};
+      S.checks=S.checks||{};S.log=S.log||[];S.workout=S.workout||{};S.menus=S.menus||{};S.notes=S.notes||{};S.exn=S.exn||{};
       last=JSON.stringify(S);
       try{localStorage.setItem('plan-v1',last)}catch(e){}
       render();
     }else{save()}
   }catch(e){}
 })();
+
+/* ---- openGym ---- */
+/* Nombres de los ejercicios de openGym por su id (el JSON solo trae el id). */
+var EXN={'0058':'Elevación de cadera acostado con barra','10329':'Remo Kroc con mancuerna','0085':'Peso muerto rumano con barra','4191':'Elevación lateral parcial con mancuernas','0294':'Curl de bíceps con mancuernas','0306':'Extensión de tríceps declinada con mancuernas','0276':'Bicho muerto',
+ '4089':'Sentadilla sumo con kettlebell','1080':'Remo invertido en suspensión','4791':'Puente de glúteos a una pierna','3668':'Press de pecho en el suelo con mancuernas','4754':'Sentadilla lateral con mancuernas','0312':'Curl martillo con mancuernas','2899':'Plancha lateral (principiante)','2612':'Saltar la cuerda',
+ '1760':'Sentadilla goblet con mancuerna','2137':'Press Arnold con mancuernas','0381':'Zancada hacia atrás con mancuernas','5637':'Flexiones inclinadas (en banco)','6221':'Press francés de pie con mancuerna','5159':'Plancha sobre manos','1370':'Elevación de gemelos en el suelo con barra',
+ '2658':'Elíptica','0685':'Correr'};
+function exName(id){return S.exn[id]||EXN[id]||null}
+function isOG(d){return d&&typeof d==='object'&&Array.isArray(d.routines)&&Array.isArray(d.workouts)}
+function num(n){return String(Math.round(n*10)/10).replace('.',',')}
+function importOG(d){
+  var rt={};
+  d.routines.forEach(function(r){rt[r.id]={name:r.name,ex:(r.ex||[]).map(function(x){return {id:x.id,sets:x.sets,mode:x.mode,reps:x.reps,sec:x.sec,min:x.min,speed:x.speed,w:x.weight||0,side:!!x.side,bw:!!x.bodyweight}})}});
+  var wk=d.workouts.map(function(w){
+    var sets=0;(w.entries||[]).forEach(function(e){sets+=(e.sets||[]).filter(function(x){return x.done}).length});
+    return {d:w.d,rid:w.routineId,name:w.name,min:w.end&&w.start?Math.round((w.end-w.start)/60000):0,vol:w.vol||0,sets:sets,prs:(w.prs||[]).length,note:w.note||'',
+      ex:(w.entries||[]).map(function(e){return {id:e.id,s:(e.sets||[]).filter(function(x){return x.done}).map(function(x){return x.sec?x.sec+' s':(x.w?num(x.w)+'×':'')+(x.sides&&x.sides.L?x.sides.L.r+'/lado':x.r)})}})};
+  }).sort(function(a,b){return a.d<b.d?-1:1});
+  var lw={};Object.keys(d.exWeights||{}).forEach(function(k){lw[k]=d.exWeights[k].w});
+  S.og={routines:rt,week:d.week||{},dayPlan:d.dayPlan||{},workouts:wk,last:lw,at:key(new Date())};
+  var nW=0;
+  wk.forEach(function(w){S.checks[w.d]=S.checks[w.d]||{};S.checks[w.d].t=true});
+  (d.bodyweight||[]).forEach(function(b){
+    if(!b.d||!b.w)return;var ex=S.log.filter(function(x){return x.d===b.d})[0];
+    if(!ex){S.log.push({d:b.d,w:b.w});nW++}else if(!ex.w){ex.w=b.w;nW++}
+  });
+  S.log.sort(function(p,q){return p.d<q.d?-1:1});
+  save();render();
+  alert('openGym importado: '+Object.keys(rt).length+' rutinas, '+wk.length+' entrenos'+(nW?', '+nW+' pesajes':'')+'.');
+}
+/* Rutina planificada en openGym para una fecha: primero el plan del día, si no, la semana tipo (0 = domingo). */
+function ogPlan(d){
+  if(!S.og)return null;var k=key(d),id=S.og.dayPlan[k];
+  if(id==='rest')return 'rest';
+  if(!id){var l=S.og.week[d.getDay()];id=l&&l[0]}
+  return id&&S.og.routines[id]?S.og.routines[id]:null;
+}
+function ogDone(d){return S.og?S.og.workouts.filter(function(w){return w.d===key(d)}):[]}
+function exLine(x){
+  var n=exName(x.id),nm=n?esc(n):'<button class="x" style="font-size:inherit;padding:0;color:var(--accent);text-decoration:underline" data-exn="'+esc(x.id)+'">Ejercicio '+esc(x.id)+' (ponle nombre)</button>';
+  var d;
+  if(x.min)d=x.min+' min'+(x.speed?' · '+num(x.speed)+' km/h':'');
+  else d=x.sets+'×'+(x.mode==='time'?x.sec+' s':x.reps)+(x.side?' por lado':'');
+  if(x.w)d+=' · '+num(x.w)+' kg';
+  var l=S.og.last[x.id];if(l&&l!==x.w)d+=' <span class="sub">(última: '+num(l)+' kg)</span>';
+  return '<div class="free-item"><span>'+nm+'</span><small style="text-align:right;white-space:nowrap">'+d+'</small></div>';
+}
+function routineCard(r){var h='<div class="card"><b>'+esc(r.name)+'</b>';r.ex.forEach(function(x){h+=exLine(x)});return h+'</div>'}
+function doneCard(w){
+  var h='<div class="card"><div class="row"><b>'+esc(w.name)+'</b><span class="tag" style="background:var(--green-soft);color:var(--green)">hecho</span></div><p class="sub">'+(w.min?w.min+' min · ':'')+w.vol+' kg · '+w.sets+' series'+(w.prs?' · '+w.prs+' récords':'')+'</p>';
+  w.ex.forEach(function(e){h+='<div class="free-item"><span>'+esc(exName(e.id)||'Ejercicio '+e.id)+'</span><small style="text-align:right">'+esc(e.s.join(', '))+'</small></div>'});
+  if(w.note)h+='<p class="sub" style="margin-top:6px">'+esc(w.note)+'</p>';
+  return h+'</div>';
+}
 
 /* ---- vistas ---- */
 function bannerFor(d){
@@ -182,8 +236,11 @@ function viewHoy(){
   h+='<h2>Checklist</h2><div class="card"><div class="row"><b>'+done+' de '+CHECKS.length+'</b><span class="sub">'+Math.round(done/CHECKS.length*100)+'%</span></div><div class="bar"><i style="width:'+(done/CHECKS.length*100)+'%"></i></div>';
   CHECKS.forEach(function(x){h+='<button class="chk'+(c[x[0]]?' on':'')+'" data-chk="'+x[0]+'"><span class="box">'+(c[x[0]]?'✓':'')+'</span><span class="t">'+x[1]+'</span></button>'});
   h+='</div>';
-  var w=workoutFor(wIdx(sel));
-  if(w&&String(w).trim())h+='<h2>Entreno de hoy</h2><div class="card" style="white-space:pre-wrap">'+esc(w)+'</div>';
+  var w=workoutFor(wIdx(sel)),dn=ogDone(sel),pl=ogPlan(sel);
+  if(dn.length){h+='<h2>Entreno de hoy</h2>';dn.forEach(function(x){h+=doneCard(x)})}
+  else if(pl==='rest')h+='<h2>Entreno de hoy</h2><div class="card">Descanso (según openGym)</div>';
+  else if(pl)h+='<h2>Entreno de hoy</h2>'+routineCard(pl);
+  if(w&&String(w).trim())h+=(dn.length||pl?'':'<h2>Entreno de hoy</h2>')+'<div class="card" style="white-space:pre-wrap">'+esc(w)+'</div>';
   return h;
 }
 function viewMenu(){
@@ -263,15 +320,30 @@ function viewProg(){
     });
     h+='</div>';
   }
-  h+='<h2>Copia de seguridad</h2><div class="card"><p class="sub" style="margin-bottom:10px">Tus datos se guardan en este teléfono. Exporta una copia de vez en cuando o para pasarlos a otro dispositivo.</p><div style="display:flex;gap:8px"><button class="btn ghost" data-act="export">Exportar</button><button class="btn ghost" data-act="import">Importar</button></div><input type="file" id="f-imp" accept="application/json,.json" style="display:none"></div>';
+  h+='<h2>Copia de seguridad</h2><div class="card"><p class="sub" style="margin-bottom:10px">Tus datos se guardan en este teléfono. Exporta una copia de vez en cuando o para pasarlos a otro dispositivo.</p><div style="display:flex;gap:8px"><button class="btn ghost" data-act="export">Exportar</button><button class="btn ghost" data-act="import">Importar</button></div><input type="file" class="imp" id="f-imp" accept="application/json,.json" style="display:none"></div>';
   return h;
 }
 function viewEnt(){
   var tdy=wIdx(midnight(new Date()));
-  var h='<div class="hdr"><div><h1>Entrenamiento</h1><p class="sub">Escribe aquí tu rutina de cada día</p></div></div>';
-  h+='<div class="banner info">Rutina cargada de tu informe de openGym, con los últimos pesos que usaste. Cámbiala cuando quieras: se guarda sola. Deja vacío los días de descanso.</div>';
+  var h='<div class="hdr"><div><h1>Entrenamiento</h1><p class="sub">'+(S.og?'Plan de openGym · importado el '+esc(S.og.at.split('-').reverse().join('/')):'Tu rutina de cada día')+'</p></div></div>';
+  h+='<div class="card"><p class="sub" style="margin-bottom:10px">En openGym: <b>Ajustes → Datos y copias → Exportar copia (JSON)</b>, guarda el archivo y elígelo aquí. Repite cuando quieras actualizar.</p><button class="btn" data-act="ogimp">Importar de openGym</button><input type="file" class="imp" id="f-og" accept="application/json,.json" style="display:none"></div>';
+  if(S.og){
+    var mon=monday(new Date()),today=midnight(new Date());
+    h+='<h2>Esta semana</h2><div class="card">';
+    DAYS.forEach(function(n,i){
+      var d=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+i),dn=ogDone(d),pl=ogPlan(d);
+      var t=dn.length?'✓ '+dn.map(function(x){return x.name}).join(', '):pl==='rest'?'Descanso':pl?pl.name:'—';
+      h+='<div class="free-item" style="'+(+d===+today?'font-weight:600;color:var(--accent)':'')+'"><span>'+n+' '+d.getDate()+'</span><small style="text-align:right'+(dn.length?';color:var(--green)':'')+'">'+esc(t)+'</small></div>';
+    });
+    h+='</div><h2>Rutinas</h2>';
+    var used={};Object.keys(S.og.week).forEach(function(k){(S.og.week[k]||[]).forEach(function(id){used[id]=1})});Object.keys(S.og.dayPlan).forEach(function(k){used[S.og.dayPlan[k]]=1});
+    Object.keys(S.og.routines).filter(function(id){return used[id]}).forEach(function(id){h+=routineCard(S.og.routines[id])});
+    var past=S.og.workouts.filter(function(w){return w.ex.length}).slice().reverse().slice(0,8);
+    if(past.length){h+='<h2>Últimos entrenos</h2>';past.forEach(function(w){var p=w.d.split('-');h+='<p class="sub" style="margin:8px 2px 4px">'+esc(new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'}))+'</p>'+doneCard(w)})}
+    h+='<h2>Notas por día</h2>';
+  }
   DAYS.forEach(function(n,i){
-    h+='<div class="card"><div class="row" style="margin-bottom:6px"><b>'+n+'</b>'+(i===tdy?'<span class="tag" style="background:var(--accent-soft);color:var(--accent)">hoy</span>':'')+'</div><textarea data-w="'+i+'" placeholder="Descanso o escribe tu rutina">'+esc(workoutFor(i))+'</textarea></div>';
+    h+='<div class="card"><div class="row" style="margin-bottom:6px"><b>'+n+'</b>'+(i===tdy?'<span class="tag" style="background:var(--accent-soft);color:var(--accent)">hoy</span>':'')+'</div><textarea data-w="'+i+'" placeholder="'+(S.og?'Notas para este día (opcional)':'Descanso o escribe tu rutina')+'">'+esc(workoutFor(i))+'</textarea></div>';
   });
   return h;
 }
@@ -285,6 +357,7 @@ document.addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;
   if(b.dataset.tab){tab=b.dataset.tab;render();window.scrollTo(0,0);return}
   if(b.dataset.chk){var k=key(sel);S.checks[k]=S.checks[k]||{};S.checks[k][b.dataset.chk]=!S.checks[k][b.dataset.chk];save();render();return}
+  if(b.dataset.exn){var nm=prompt('Nombre del ejercicio '+b.dataset.exn+' (míralo en openGym):');if(nm&&nm.trim()){S.exn[b.dataset.exn]=nm.trim();save();render()}return}
   if(b.dataset.del){S.log=S.log.filter(function(x){return x.d!==b.dataset.del});save();render();return}
   var a=b.dataset.act;
   if(a==='prev'){sel=new Date(sel.getFullYear(),sel.getMonth(),sel.getDate()-1);render()}
@@ -299,6 +372,7 @@ document.addEventListener('click',function(e){
     l.href=u;l.download='miplan-'+key(new Date())+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},1000);
   }
   else if(a==='import'){document.getElementById('f-imp').click()}
+  else if(a==='ogimp'){document.getElementById('f-og').click()}
   else if(a==='addlog'){
     var d=document.getElementById('f-d').value,w=parseFloat(document.getElementById('f-w').value),c=parseFloat(document.getElementById('f-c').value);
     if(!d||(isNaN(w)&&isNaN(c)))return;
@@ -310,15 +384,16 @@ document.addEventListener('click',function(e){
   }
 });
 document.addEventListener('change',function(e){
-  var t=e.target;if(t.id!=='f-imp'||!t.files||!t.files[0])return;
+  var t=e.target;if(!t.classList||!t.classList.contains('imp')||!t.files||!t.files[0])return;
   var r=new FileReader();
   r.onload=function(){
     try{
-      var d=JSON.parse(r.result);
+      var d=JSON.parse(r.result);t.value='';
+      if(isOG(d)){importOG(d);return}
       if(!d||typeof d!=='object'||!(d.checks||d.log||d.workout||d.menus))throw 0;
       if(!confirm('¿Reemplazar los datos actuales por los de la copia?'))return;
-      S=Object.assign({checks:{},log:[],workout:{},menus:{},notes:{}},d);save();render();alert('Datos importados');
-    }catch(err){alert('El archivo no es una copia válida de Mi plan')}
+      S=Object.assign({checks:{},log:[],workout:{},menus:{},notes:{},exn:{}},d);save();render();alert('Datos importados');
+    }catch(err){alert('El archivo no es una copia válida de Mi plan ni de openGym')}
   };
   r.readAsText(t.files[0]);
 });

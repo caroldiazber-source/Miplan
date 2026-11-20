@@ -6,7 +6,10 @@ App de nutrición y entrenamiento para el móvil (PWA: se instala desde el naveg
 - **Menú**: menú semanal editable y notas por semana.
 - **Fechas**: días y comidas libres.
 - **Progreso**: peso, cintura, gráfica y copia de seguridad (exportar/importar).
-- **Entreno**: rutina de cada día de la semana.
+- **Entreno**: plan importado de openGym (semana, rutinas, últimos entrenos) y notas por día.
+
+## Conectar con openGym
+En openGym: *Ajustes → Datos y copias → Exportar copia (JSON)*. En Mi plan: *Entreno → Importar de openGym* y elige ese archivo. Se cargan las rutinas, el plan de la semana, los entrenos hechos (marca "Entreno hecho" en Hoy) y los pesajes. Repite cuando quieras actualizar.
 
 ## Publicarla (GitHub Pages)
 1. En GitHub: *Settings → Pages → Source: Deploy from a branch*, rama `main`, carpeta `/ (root)`.
