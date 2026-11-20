@@ -2,10 +2,11 @@
 App de nutrición y entrenamiento para el móvil (PWA: se instala desde el navegador, funciona sin conexión).
 
 ## Pestañas
-- **Hoy**: menú del día, checklist y entreno del día.
-- **Menú**: menú semanal editable y notas por semana.
+- **Hoy**: menú del día, calorías y proteína del día (registro por comida), agua en vasos, checklist y entreno del día.
+- **Menú**: semana editable, platos desglosados en gramos y kcal, tabla de alimentos (con tus propios alimentos) y lista de la compra semanal.
 - **Fechas**: días y comidas libres.
-- **Progreso**: peso, cintura, gráfica y copia de seguridad (exportar/importar).
+- **Progreso**: peso, cintura, cadera, pecho, brazo y muslo, con gráfica de peso.
+- **Ajustes**: color, tema claro/oscuro, orden de pestañas, objetivos diarios, recordatorios en el Calendario y copia de seguridad.
 - **Entreno**: plan importado de openGym (semana, rutinas, últimos entrenos) y notas por día.
 
 ## Conectar con openGym
